@@ -5,10 +5,12 @@ interface Env {
   [key: string]: {
     id: string;
     name: string;
+    code?: string;
     value?: string | number;
     values?: {
       name: string;
-      value: string;
+      code?: string;
+      value: string | number;
     }[];
   };
 }
@@ -29,33 +31,97 @@ function App() {
     return document.querySelector(selector);
   };
 
+  const error = {
+    "ua-ch": "取得できませんでした。navigator.userAgentData は非対応です。",
+  };
+
+  const userAgentData = navigator?.userAgentData;
+
   const currentEnv: Env = {
-    ua: { id: "ua", name: "User-Agent", value: navigator.userAgent },
+    ua: {
+      id: "ua",
+      name: "User-Agent",
+      code: "navigator.userAgent",
+      value: navigator.userAgent,
+    },
     "ua-ch": {
       id: "ua-ch",
       name: "User-Agent Client Hints",
-      values: [
-        { name: "brands", value: getUACHBrandsValue() },
-        { name: "mobile", value: navigator?.userAgentData.mobile.toString() },
-        { name: "platform", value: navigator?.userAgentData.platform },
-      ],
+      values: userAgentData
+        ? [
+            {
+              name: "brands",
+              code: "navigator.userAgentData.brands",
+              value: getUACHBrandsValue(),
+            },
+            {
+              name: "mobile",
+              code: "navigator.userAgentData.mobile",
+              value: userAgentData?.mobile.toString(),
+            },
+            {
+              name: "platform",
+              code: "navigator.userAgentData.platform",
+              value: userAgentData?.platform,
+            },
+          ]
+        : [{ name: "error", value: error["ua-ch"] }],
     },
     "100svh": { id: "100svh", name: "100svh", value: 0 },
     "100lvh": { id: "100lvh", name: "100lvh", value: 0 },
     window_inner_size: {
       id: "window_inner_size",
       name: "window inner size",
-      value: `${window.innerWidth} x ${window.innerHeight}`,
+      values: [
+        {
+          name: "inner width",
+          code: "window.innerWidth",
+          value: window.innerWidth,
+        },
+        {
+          name: "inner height",
+          code: "window.innerHeight",
+          value: window.innerHeight,
+        },
+      ],
     },
     window_outer_size: {
       id: "window_outer_size",
       name: "window outer size",
-      value: `${window.outerWidth} x ${window.outerHeight}`,
+      values: [
+        {
+          name: "outer width",
+          code: "window.outerWidth",
+          value: window.outerWidth,
+        },
+        {
+          name: "outer height",
+          code: "window.outerHeight",
+          value: window.outerHeight,
+        },
+      ],
     },
     screen_size: {
       id: "screen_size",
       name: "screen size",
-      value: `${screen.width} x ${screen.height}`,
+      values: [
+        {
+          name: "screen width",
+          code: "screen.width",
+          value: screen.width,
+        },
+        {
+          name: "screen height",
+          code: "screen.height",
+          value: screen.height,
+        },
+      ],
+    },
+    device_pixel_ratio: {
+      id: "device_pixel_ratio",
+      name: "device pixel ratio",
+      code: "window.devicePixelRatio",
+      value: window.devicePixelRatio,
     },
   };
 
@@ -75,6 +141,7 @@ function App() {
           return (
             <li key={key}>
               <p className="name">{env[key].name}</p>
+
               {env[key].values ? (
                 <ul data-level="2" className="value">
                   {env[key].values?.map((valueItem) => {
@@ -82,6 +149,7 @@ function App() {
                       <li key={valueItem.name}>
                         <p className="name">{valueItem.name}</p>
                         <p className="value">{valueItem.value}</p>
+                        {valueItem.code && <code>{valueItem.code}</code>}
                       </li>
                     );
                   })}
@@ -89,6 +157,8 @@ function App() {
               ) : (
                 <p className="value">{env[key].value}</p>
               )}
+
+              {env[key].code && <code>{env[key].code}</code>}
             </li>
           );
         })}
